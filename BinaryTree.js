@@ -1,117 +1,142 @@
 class Node{
-	constructor(key){
-		if (key.key && key.lChild && key.rChild){
-			this.key = key.key;
-			this.lSon = key.lChild;
-			this.rSon = key.rChild;
+	constructor(node) {
+		if (node.key && node.lChild && node.rChild) {
+			this.key = node.key;
+			this.lChild = node.lChild;
+			this.rChild = node.rChild;
 		} else {
-			this.key = key;
-			this.lSon = null;
-			this.rSon = null;
+			this.key = node;
+			this.lChild = null;
+			this.rChild = null;
 		}
 	}
 
-	set lChild(key){
-		this.lSon = key;
+	get key() {
+		return this.innerKey;
 	}
-	get lChild(){
+	set key(value) {
+		this.innerKey = value;
+	}
+
+	get lChild() {
 		return this.lSon;
 	}
-
-	set rChild(key){
-		this.rSon = key;
+	set lChild(value) {
+		this.lSon = value;
 	}
-	get rChild(){
+
+	get rChild() {
 		return this.rSon;
 	}
-
-	
+	set rChild(value) {
+		this.rSon = value;
+	}
 }
 
-class BinaryTree{
-	constructor(key){
+class BinaryTree {
+	constructor(key) {
 		this.root = new Node(key); 
 	}
 
-	insert(value){
-		var rootCopy = this.root;
-
-		while (rootCopy != null){
-			if (value < rootCopy.key){
-				if (rootCopy.lChild == null){
-					rootCopy.lChild = new Node(value);
-					rootCopy = null;
-				}
-				else{
-					rootCopy = rootCopy.LChild;
-				}
+	insert(value, node) {
+		if (!node)
+			node = this.root;
+		if (value < node.key) {
+			if (!node.lChild) {
+				node.lChild = new Node(value);
 			}
-			else if (value > rootCopy.key){
-				if (rootCopy.rChild == null){
-					rootCopy.rChild = new Node(value);
-					rootCopy = null;
-				}
-				else{
-					rootCopy = rootCopy.rChild;
-				}
+			else {
+				this.insert(value, node.lChild);
 			}
-			else
-				rootCopy = null;
+		}
+		else if (value > node.key) {
+			if (!node.rChild) {
+				node.rChild = new Node(value);
+			}
+			else {
+				this.insert(value, node.rChild);
+			}
 		}
 	}
 
-	
-	delete(value){
-		var rootCopy = this.root;
+	delete(value, node) {
+		if (!node)
+			node = this.root;
+		if (value < node.key) {
+			if (node.lChild) {
+				this.delete(value, node.lChild);
+			}
+		} else if (value > node.key) {
+			if (node.rChild) {
+				this.delete(value, node.rChild);
+			}
+		}else {
+			if (!node.rChild) {
+				if (node.lChild) {
+					const nodeLChild = node.lChild;
+					node.key = nodeLChild.key;
+					node.rChild = nodeLChild.rChild;
+					node.lChild = nodeLChild.lChild;
+				}
+			} else if (node.rChild && node.rChild) {
+				const nodeRChild = node.rChild;
 
-		while (rootCopy != null){
-			if (value < rootCopy.key){
-				if (rootCopy.lChild == null){
-					//rootCopy.lChild = new Node(value);
-					rootCopy = null;
-				}
-				else{
-					var tempLSon = rootCopy.lChild;
-					if (tempLSon.key == value){
-						if (tempLSon.lSon == null && tempLSon.lSon == null){
-							rootCopy.lChild = null;
-						}
-						else if (tempLSon.lSon == null){
-							rootCopy.rChild = tempLSon.lSon;
-						}
-						else if (tempLSon.rSon == null){
-							rootCopy.lChild = tempLSon.rSon;
-						}
-						else{
-							if (tempLSon.rSon.lSon != null){
-								tempLSon.rSon.lSon = null;
-								rootCopy.lChild = tempLSon.rSon.lSon;
-							}
-						}
-						rootCopy = null;
-					}
+				node.key = nodeRChild.key;
+				if (!nodeRChild.lChild) {
+					node.rChild = nodeRChild.rChild;
+				} else {
+					node.rChild = nodeRChild.lChild;
 				}
 			}
-			else if (value > rootCopy.key){
-				if (rootCopy.rChild == null){
-					//rootCopy.rChild = new Node(value);
-					rootCopy = null;
-				}
-				else{
-					rootCopy = rootCopy.rChild;
-				}
-			}
-			else
-				rootCopy = null;
 		}
-	} 
+	}
 
-	print(){
+	localPrefix(action, node) {
+		if (node) {
+			action(node.key);
+			this.localPrefix(action, node.lChild);
+			this.localPrefix(action, node.rChild);
+		}
+	}
+
+	prefix(action){
+		this.localPrefix(action, this.root);
+	}
+
+	localPostfix(action, node) {
+		if (node) {
+			this.localPostfix(action, node.lChild);
+			this.localPostfix(action, node.rChild);
+			action(node.key);
+		}
+	}
+
+	postfix(action){
+		this.localPostfix(action, this.root);
+	}
+
+	localInfix(action, node) {
+		if (node) {
+			this.localInfix(action, node.lChild);
+			action(node.key);
+			this.localInfix(action, node.rChild);
+		}
+	}
+
+	infix(action){
+		this.localInfix(action, this.root);
+	}
+
+	print() {
 		console.log(this.root);
 	}
 }
 
 var tree = new BinaryTree(5);
+
 tree.insert(4);
 tree.insert(2);
-tree.print();
+
+tree.prefix(console.log);
+
+tree.delete(4);
